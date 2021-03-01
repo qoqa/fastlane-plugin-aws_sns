@@ -170,7 +170,7 @@ module Fastlane
                                       env_name: "AWS_SNS_PLATFORM_GCM_API_KEY",
                                       description: "AWS Platform GCM API KEY",
                                       optional: true),
-          FastlaneCore::ConfigItem.new(key: :platform_udpate_if_exists,
+          FastlaneCore::ConfigItem.new(key: :platform_update_if_exists,
                                       env_name: "AWS_SNS_PLATFORM_UDPATE_IF_EXISTS",
                                       description: "AWS platform should be updated if it already exists",
                                       default_value: false,
