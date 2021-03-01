@@ -21,6 +21,8 @@ module Fastlane
 
         platform_gcm_api_key = params[:platform_gcm_api_key]
 
+        platform_update_if_exists = params[:platform_update_if_exists]
+
         UI.user_error!("No S3 access key given, pass using `access_key: 'key'`") unless access_key.to_s.length > 0
         UI.user_error!("No S3 secret access key given, pass using `secret_access_key: 'secret key'`") unless secret_access_key.to_s.length > 0
         UI.user_error!("No S3 region given, pass using `region: 'region'`") unless region.to_s.length > 0
@@ -61,12 +63,48 @@ module Fastlane
         #
         UI.crash!("Unable to create any attributes to create platform application") unless attributes
         begin
-          resp = client.create_platform_application({
-            name: platform_name,
-            platform: platform,
-            attributes: attributes,
-          })
-          arn = resp.platform_application_arn
+          arn = nil
+
+          # Find the existing platform application
+          if platform_update_if_exists
+            next_token = nil
+
+            loop do
+              response = client.list_platform_applications({
+                next_token: next_token,
+              })
+
+              next_token = response.next_token
+
+              platform_application = response.platform_applications.find { |platform_application|
+                platform_application.platform_application_arn.end_with? platform_name 
+              }
+
+              unless platform_application.nil? 
+                arn = platform_application.platform_application_arn
+                UI.message "Found existing platform ARN: #{arn}"
+                break
+              end
+              break if next_token.nil?
+            end
+          end
+
+          if arn.nil?
+            UI.important "Create a new platform with name: #{platform_name}"
+            response = client.create_platform_application({
+              name: platform_name,
+              platform: platform,
+              attributes: attributes,
+            })
+            arn = response.platform_application_arn
+            UI.important "New platform created with ARN: #{arn}"
+          else
+            UI.important "Update existing platform with ARN: #{arn}"
+            client.set_platform_application_attributes({
+              platform_application_arn: arn,
+              attributes: attributes
+            })
+          end
 
           Actions.lane_context[SharedValues::AWS_SNS_PLATFORM_APPLICATION_ARN] = arn
           ENV[SharedValues::AWS_SNS_PLATFORM_APPLICATION_ARN.to_s] = arn
@@ -133,6 +171,12 @@ module Fastlane
           FastlaneCore::ConfigItem.new(key: :platform_gcm_api_key,
                                       env_name: "AWS_SNS_PLATFORM_GCM_API_KEY",
                                       description: "AWS Platform GCM API KEY",
+                                      optional: true),
+          FastlaneCore::ConfigItem.new(key: :platform_update_if_exists,
+                                      env_name: "AWS_SNS_PLATFORM_UPDATE_IF_EXISTS",
+                                      description: "AWS platform should be updated if it already exists",
+                                      default_value: false,
+                                      is_string: false,
                                       optional: true)
         ]
       end

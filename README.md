@@ -31,6 +31,8 @@ aws_sns(
 
   # Optional private key password
   # platform_apns_private_key_password: 'joshissupercool'
+  # Optional: platform should be updated if it already exists
+  # platform_update_if_exists: true
 )
 ```
 
@@ -40,6 +42,9 @@ aws_sns(
   platform: 'GCM',
   platform_name: 'your_awesome_android_app',
   platform_gcm_api_key: 'your_gcm_api_key'
+
+  # Optional: platform should be updated if it already exists
+  # platform_update_if_exists: true
 )
 ```
 
