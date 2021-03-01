@@ -82,26 +82,28 @@ module Fastlane
 
               unless platform_application.nil? 
                 arn = platform_application.platform_application_arn
+                UI.message "Found existing platform ARN: #{arn}"
                 break
               end
               break if next_token.nil?
             end
           end
 
-          # Create a new platform
-          if arn.nil?  
-            resp = client.create_platform_application({
+          if arn.nil?
+            UI.important "Create a new platform with name: #{platform_name}"
+            response = client.create_platform_application({
               name: platform_name,
               platform: platform,
               attributes: attributes,
             })
-            arn = resp.platform_application_arn
+            arn = response.platform_application_arn
+            UI.important "New platform created with ARN: #{arn}"
           else
-            # Update existing platform
+            UI.important "Update existing platform with ARN: #{arn}"
             client.set_platform_application_attributes({
               platform_application_arn: arn,
-              attributes: attributes,
-          })
+              attributes: attributes
+            })
           end
 
           Actions.lane_context[SharedValues::AWS_SNS_PLATFORM_APPLICATION_ARN] = arn
