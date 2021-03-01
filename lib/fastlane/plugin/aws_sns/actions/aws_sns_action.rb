@@ -21,7 +21,7 @@ module Fastlane
 
         platform_gcm_api_key = params[:platform_gcm_api_key]
 
-        platform_udpate_if_exists = params[:platform_udpate_if_exists]
+        platform_update_if_exists = params[:platform_update_if_exists]
 
         UI.user_error!("No S3 access key given, pass using `access_key: 'key'`") unless access_key.to_s.length > 0
         UI.user_error!("No S3 secret access key given, pass using `secret_access_key: 'secret key'`") unless secret_access_key.to_s.length > 0
@@ -66,7 +66,7 @@ module Fastlane
           arn = nil
 
           # Find the existing platform application
-          if platform_udpate_if_exists
+          if platform_update_if_exists
             next_token = nil
 
             loop do
@@ -171,7 +171,7 @@ module Fastlane
                                       description: "AWS Platform GCM API KEY",
                                       optional: true),
           FastlaneCore::ConfigItem.new(key: :platform_update_if_exists,
-                                      env_name: "AWS_SNS_PLATFORM_UDPATE_IF_EXISTS",
+                                      env_name: "AWS_SNS_PLATFORM_UPDATE_IF_EXISTS",
                                       description: "AWS platform should be updated if it already exists",
                                       default_value: false,
                                       is_string: false,
